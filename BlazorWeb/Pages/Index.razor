@@ -1,0 +1,42 @@
+﻿@page "/"
+<PageTitle>Dashboard</PageTitle>
+
+<div class="container">
+    <div class="container px-4">
+        <div class="row gx-5">
+            <div class="col">
+                <div class="p-3 GaugeMeter">
+                    <RadzenLabel Text="Current temp" Style="margin-left: 28%; color:white;" />
+                    <RadzenRadialGauge Style="width: 100%; height: 225px;">
+                        <RadzenRadialGaugeScale StartAngle="-150" EndAngle="150" Step="20" Min="-40" Max="80" TickPosition=@tickPosition>
+                            <RadzenRadialGaugeScalePointer Value=@GaugeValue Length="0.6" ShowValue=@showValue Stroke="#da4e25">
+                                <Template Context="pointer">
+                                    <h4>
+                                        @pointer.Value <sup>°C</sup>
+                                    </h4>
+                                </Template>
+                            </RadzenRadialGaugeScalePointer>
+                            <RadzenRadialGaugeScaleRange From="-40" To="-15" Fill="#0008fa" />
+                            <RadzenRadialGaugeScaleRange From="-15" To="0" Fill="#009afa" />
+                            <RadzenRadialGaugeScaleRange From="0" To="20" Fill="green" />
+                            <RadzenRadialGaugeScaleRange From="20" To="40" Fill="orange" />
+                            <RadzenRadialGaugeScaleRange From="40" To="80" Fill="red" />
+                        </RadzenRadialGaugeScale>
+                    </RadzenRadialGauge>
+                </div>
+            </div>
+            <div class="col">
+                <div class="p-3 NewReadings">
+                    Hello
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    bool showValue = true;
+    public double GaugeValue { get; set; } = 22;
+    IEnumerable<GaugeTickPosition> tickPositions = Enum.GetValues(typeof(GaugeTickPosition)).Cast<GaugeTickPosition>();
+    GaugeTickPosition tickPosition = GaugeTickPosition.Inside;
+}

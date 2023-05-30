@@ -1,0 +1,94 @@
+﻿@page "/dataoverview"
+@inject APIService service;
+@inject IJSRuntime scriptRunner;
+
+<PageTitle>Data Overview</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <RadzenCard class="w-100 mb-4" Style="display: flex; align-items: center; gap: 0.5rem; background-color:#353839">
+                <RadzenDatePicker @bind-Value="@DateFrom" @onfocusout="() => UpdateGraph()" Name="From"></RadzenDatePicker>
+                <RadzenLabel Text="From" For="From" Style="margin-right: 1rem; color:white;"/>
+                <RadzenDatePicker @bind-Value="@DateTo" @onfocusout="() => UpdateGraph()" Name="To"></RadzenDatePicker>
+                <RadzenLabel Text="To" Style="color:white;" For="To" />
+            </RadzenCard>
+            <RadzenChart class="Graph">
+                <RadzenLineSeries Data="@TemperatureData" CategoryProperty="Date" Title="Temperature" LineType="LineType.Solid" ValueProperty="Data">
+                    <RadzenMarkers MarkerType="MarkerType.Square" />
+                    <RadzenSeriesDataLabels/>
+                </RadzenLineSeries>
+                <RadzenLineSeries Data="@HumidityData" CategoryProperty="Date" Title="Humidity" LineType="LineType.Dotted" ValueProperty="Data">
+                    <RadzenMarkers MarkerType="MarkerType.Diamond" />
+                    <RadzenSeriesDataLabels/>
+                </RadzenLineSeries>
+                <RadzenCategoryAxis Stroke="#da4e25" Padding="20">
+                    <RadzenTicks Stroke="#000000">
+                        <Template>
+                            <text class="rz-tick-text" style="text-anchor: start; transform: translate(@(Math.Truncate(context.X))px, @(Math.Truncate(context.Y + 10))px) rotate(35deg)">@context.Value</text>
+                        </Template>
+                    </RadzenTicks>
+                </RadzenCategoryAxis>
+                <RadzenValueAxis Step="5" Stroke="#da4e25">
+                    <RadzenGridLines Stroke="#da4e25" Visible="true" />
+                </RadzenValueAxis>
+            </RadzenChart>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    public Telemetry[] Telemetries { get; set; } = new Telemetry[] { };
+    DataItem[] TemperatureData = new DataItem[] { };
+    DataItem[] HumidityData = new DataItem[] { };
+
+    public DateTime DateFrom { get; set; } = DateTime.Now.AddMinutes(-10);
+    public DateTime DateTo { get; set; } = DateTime.Now;
+
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await UpdateGraph();
+        StateHasChanged();
+    }
+
+    private async Task UpdateGraph()
+    {
+        List<Telemetry> telemetries = await service.GetTelementry(DateFrom, DateTo);
+        List<DataItem> newTemperatureItems = new();
+        List<DataItem> newHumidityItems = new();
+        foreach (Telemetry data in telemetries)
+        {
+            newTemperatureItems.Add(new DataItem
+            {
+                    Date = data.Time.ToLocalTime().ToString("HH:mm"),
+                Data = data.Temperature ?? 0
+            });
+            newHumidityItems.Add(new DataItem
+            {
+                    Date = data.Time.ToLocalTime().ToString("HH:mm"),
+                Data = data.Humidity ?? 0
+            });
+        }
+        TemperatureData = newTemperatureItems.ToArray();
+        HumidityData = newHumidityItems.ToArray();
+        Telemetries = telemetries.ToArray();
+    }
+
+    class DataItem
+    {
+        public string Date { get; set; }
+        public double Data { get; set; }
+    }
+}
