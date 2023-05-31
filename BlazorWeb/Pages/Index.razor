@@ -1,33 +1,44 @@
 ﻿@page "/"
 <PageTitle>Dashboard</PageTitle>
 
-<div class="container">
-    <div class="container px-4">
-        <div class="row gx-5">
-            <div class="col">
-                <div class="p-3 GaugeMeter">
-                    <RadzenLabel Text="Current temp" Style="margin-left: 28%; color:white;" />
-                    <RadzenRadialGauge Style="width: 100%; height: 225px;">
-                        <RadzenRadialGaugeScale StartAngle="-150" EndAngle="150" Step="20" Min="-40" Max="80" TickPosition=@tickPosition>
-                            <RadzenRadialGaugeScalePointer Value=@GaugeValue Length="0.6" ShowValue=@showValue Stroke="#da4e25">
+<div class="container px-4">
+    <div class="row gx-5">
+        <div class="col">
+            <div class="p-3 GaugeMeter d-flex flex-column">
+                <RadzenLabel Text="Current Temperature" Style="position: inherit; margin-left: auto; margin-right: auto; color:white;" />
+                <RadzenRadialGauge Style="width: 100%; height: 225px;">
+                    <RadzenRadialGaugeScale StartAngle="-150" EndAngle="150" Step="20" Min="-40" Max="80" TickPosition=@GaugeTickPosition.Outside>
+                        <RadzenRadialGaugeScalePointer Value=@gaugeValue Length="0.6" ShowValue=true Stroke="#da4e25">
+                            <Template Context="pointer">
+                                <h4 style="color:#da4e25; margin-top: 6px;">
+                                    @pointer.Value <sup>°C</sup>
+                                </h4>
+                            </Template>
+                        </RadzenRadialGaugeScalePointer>
+                        <RadzenRadialGaugeScaleRange From="-40" To="-15" Fill="#0008fa" />
+                        <RadzenRadialGaugeScaleRange From="-15" To="0" Fill="#009afa" />
+                        <RadzenRadialGaugeScaleRange From="0" To="20" Fill="green" />
+                        <RadzenRadialGaugeScaleRange From="20" To="40" Fill="orange" />
+                        <RadzenRadialGaugeScaleRange From="40" To="80" Fill="red" />
+                    </RadzenRadialGaugeScale>
+                </RadzenRadialGauge>
+            </div>
+        </div>
+        <div class="col">
+            <div class="p-3 GaugeMeter d-flex flex-column">
+                <RadzenLabel Text="Current Humidity" Style="position: inherit; margin-left: auto; margin-right: auto; color:white;" />
+                <div style="height: 225px;">
+                    <RadzenArcGauge Style="width: 100%; height: 218px;">
+                        <RadzenArcGaugeScale Stroke="#da4e25" Step="10" Min="0" Max="100" MinorStep="2" Radius="1.5" TickPosition=@GaugeTickPosition.Outside Y="0.9" Margin="0">
+                            <RadzenArcGaugeScaleValue Fill="#da4e25" Stroke="#da4e25" Value=@arcValue ShowValue=true>
                                 <Template Context="pointer">
-                                    <h4>
-                                        @pointer.Value <sup>°C</sup>
+                                    <h4 style="color:#da4e25; margin-bottom: 80px;">
+                                        @pointer.Value <sup>%</sup>
                                     </h4>
                                 </Template>
-                            </RadzenRadialGaugeScalePointer>
-                            <RadzenRadialGaugeScaleRange From="-40" To="-15" Fill="#0008fa" />
-                            <RadzenRadialGaugeScaleRange From="-15" To="0" Fill="#009afa" />
-                            <RadzenRadialGaugeScaleRange From="0" To="20" Fill="green" />
-                            <RadzenRadialGaugeScaleRange From="20" To="40" Fill="orange" />
-                            <RadzenRadialGaugeScaleRange From="40" To="80" Fill="red" />
-                        </RadzenRadialGaugeScale>
-                    </RadzenRadialGauge>
-                </div>
-            </div>
-            <div class="col">
-                <div class="p-3 NewReadings">
-                    Hello
+                            </RadzenArcGaugeScaleValue>
+                        </RadzenArcGaugeScale>
+                    </RadzenArcGauge>
                 </div>
             </div>
         </div>
@@ -35,8 +46,45 @@
 </div>
 
 @code {
-    bool showValue = true;
-    public double GaugeValue { get; set; } = 22;
-    IEnumerable<GaugeTickPosition> tickPositions = Enum.GetValues(typeof(GaugeTickPosition)).Cast<GaugeTickPosition>();
-    GaugeTickPosition tickPosition = GaugeTickPosition.Inside;
+    double gaugeValue;
+    double arcValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var connection = new HubConnectionBuilder()
+        .WithUrl("https://jswzjk6b-7117.euw.devtunnels.ms/ChillWatcherHub")
+        .Build();
+
+        await connection.StartAsync();
+
+        connection.On<Telemetry>("UpdateTelementry", telementry =>
+        {
+            if (telementry.Temperature != null)
+            {
+                while (gaugeValue != (double)telementry.Temperature  && arcValue != (double)telementry.Humidity)
+                {
+                    System.Threading.Thread.Sleep(250);
+                    if (gaugeValue > (double)telementry.Temperature)
+                    {
+                        gaugeValue = gaugeValue - 1;
+                    }
+                    if (gaugeValue < (double)telementry.Temperature)
+                    {
+                        gaugeValue = gaugeValue + 1;
+                    }
+
+                    if (arcValue > (double)telementry.Humidity)
+                    {
+                        arcValue = arcValue - 1;
+                    }
+                    if (arcValue < (double)telementry.Humidity)
+                    {
+                        arcValue = arcValue + 1;
+                    }
+
+                    InvokeAsync(StateHasChanged);
+                }
+            }
+        });
+    }
 }

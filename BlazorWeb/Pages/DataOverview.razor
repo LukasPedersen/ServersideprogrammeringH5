@@ -5,13 +5,13 @@
 <PageTitle>Data Overview</PageTitle>
 
 <div class="container">
-    <div class="row">
+    <div class="row" style="height: 100%; position: fixed; width: 73%;">
         <div class="col-sm-12">
             <RadzenCard class="w-100 mb-4" Style="display: flex; align-items: center; gap: 0.5rem; background-color:#353839">
                 <RadzenDatePicker @bind-Value="@DateFrom" @onfocusout="() => UpdateGraph()" Name="From"></RadzenDatePicker>
                 <RadzenLabel Text="From" For="From" Style="margin-right: 1rem; color:white;"/>
-                <RadzenDatePicker @bind-Value="@DateTo" @onfocusout="() => UpdateGraph()" Name="To"></RadzenDatePicker>
-                <RadzenLabel Text="To" Style="color:white;" For="To" />
+                <RadzenLabel Text="To" Style="color:white; position: relative; left: 25%;" For="To" />
+                <RadzenDatePicker Style="margin-left: 25%;" @bind-Value="@DateTo" @onfocusout="() => UpdateGraph()" Name="To"></RadzenDatePicker>
             </RadzenCard>
             <RadzenChart class="Graph">
                 <RadzenLineSeries Data="@TemperatureData" CategoryProperty="Date" Title="Temperature" LineType="LineType.Solid" ValueProperty="Data">
