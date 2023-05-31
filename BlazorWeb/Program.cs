@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Radzen;
@@ -16,7 +18,20 @@ namespace BlazorWeb
             builder.Services.AddServerSideBlazor();
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<NotificationService>();
-            builder.Services.AddSingleton<APIService>();
+            builder.Services.AddScoped<APIService>();
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+            builder.Services.AddAuthentication().AddGoogle(options =>
+            {
+                var clientid = builder.Configuration["Google:ClientId"];
+                options.ClientId = builder.Configuration["Google:ClientId"];
+                options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+                options.ClaimActions.MapJsonKey("urn:google:profile", "link");
+                options.ClaimActions.MapJsonKey("urn:google:image", "picture");
+            });
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<HttpContextAccessor>();
+            builder.Services.AddScoped<HttpClient>();
 
             var app = builder.Build();
 
@@ -31,6 +46,9 @@ namespace BlazorWeb
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
+            app.UseCookiePolicy();
+            app.UseAuthentication();
+            app.UseRouting();
 
             app.UseRouting();
 

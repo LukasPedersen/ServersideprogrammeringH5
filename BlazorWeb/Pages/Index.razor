@@ -1,4 +1,7 @@
 ﻿@page "/"
+@inject AuthenticationStateProvider state;
+@inject NavigationManager NavigationManager
+
 <PageTitle>Dashboard</PageTitle>
 
 <div class="container px-4">
@@ -8,7 +11,7 @@
                 <RadzenLabel Text="Current Temperature" Style="position: inherit; margin-left: auto; margin-right: auto; color:white;" />
                 <RadzenRadialGauge Style="width: 100%; height: 225px;">
                     <RadzenRadialGaugeScale StartAngle="-150" EndAngle="150" Step="20" Min="-40" Max="80" TickPosition=@GaugeTickPosition.Outside>
-                        <RadzenRadialGaugeScalePointer Value=@gaugeValue Length="0.6" ShowValue=true Stroke="#da4e25">
+                        <RadzenRadialGaugeScalePointer Fill="da4e25" Value=@gaugeValue Length="0.6" ShowValue=true Stroke="#da4e25">
                             <Template Context="pointer">
                                 <h4 style="color:#da4e25; margin-top: 6px;">
                                     @pointer.Value <sup>°C</sup>
@@ -51,6 +54,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await state.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/Login/Login");
+        }
+
+
         var connection = new HubConnectionBuilder()
         .WithUrl("https://jswzjk6b-7117.euw.devtunnels.ms/ChillWatcherHub")
         .Build();
@@ -61,14 +73,15 @@
         {
             if (telementry.Temperature != null)
             {
-                while (gaugeValue != (double)telementry.Temperature  && arcValue != (double)telementry.Humidity)
+                bool loop = true;
+                while (loop)
                 {
-                    System.Threading.Thread.Sleep(250);
+                    System.Threading.Thread.Sleep(50);
                     if (gaugeValue > (double)telementry.Temperature)
                     {
                         gaugeValue = gaugeValue - 1;
                     }
-                    if (gaugeValue < (double)telementry.Temperature)
+                    else if (gaugeValue < (double)telementry.Temperature)
                     {
                         gaugeValue = gaugeValue + 1;
                     }
@@ -77,14 +90,22 @@
                     {
                         arcValue = arcValue - 1;
                     }
-                    if (arcValue < (double)telementry.Humidity)
+                    else if (arcValue < (double)telementry.Humidity)
                     {
                         arcValue = arcValue + 1;
                     }
 
                     InvokeAsync(StateHasChanged);
+
+                    if (gaugeValue == (double)telementry.Temperature && arcValue == (double)telementry.Humidity)
+                    {
+                        loop = false;
+                        return;
+                    }
                 }
             }
         });
+
+        
     }
 }
