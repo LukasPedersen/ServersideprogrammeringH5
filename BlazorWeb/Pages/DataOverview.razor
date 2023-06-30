@@ -1,6 +1,8 @@
 ﻿@page "/dataoverview"
 @inject APIService service;
 @inject IJSRuntime scriptRunner;
+@inject AuthenticationStateProvider state;
+@inject NavigationManager NavigationManager
 
 <PageTitle>Data Overview</PageTitle>
 
@@ -8,11 +10,11 @@
     <div class="row" style="height: 100%; position: fixed; width: 73%;">
         <div class="col-sm-12">
             <RadzenCard class="w-100 mb-4" Style="display: flex; align-items: center; gap: 0.5rem; background-color:#353839">
-                <RadzenDatePicker @bind-Value="@DateFrom" @onfocusout="() => UpdateGraph()" Style="width: 265px;" Name="From"></RadzenDatePicker>
+                <RadzenDatePicker @bind-Value="@DateFrom" Change="() => UpdateGraph()" ShowSeconds=false Style="width: 300px;" Name="From"></RadzenDatePicker>
                 <RadzenLabel Text="From" For="From" Style="margin-right: 1rem; color:white;"/>
                 <RadzenButton Text="Update" Click="@UpdateGraph" class="UpdateButton"></RadzenButton>
                 <RadzenLabel Text="To" Style="color:white; position: relative; left: 25%;" For="To" />
-                <RadzenDatePicker Style="margin-left: 25%; width: 265px;" @bind-Value="@DateTo" @onfocusout="() => UpdateGraph()" Name="To"></RadzenDatePicker>
+                <RadzenDatePicker Style="margin-left: 25%; width: 300px;" @bind-Value="@DateTo" @onfocusout="() => UpdateGraph()" ShowSeconds=false Name="To"></RadzenDatePicker>
             </RadzenCard>
             <RadzenChart class="Graph">
                 <RadzenLineSeries Data="@TemperatureData" CategoryProperty="Date" Title="Temperature" LineType="LineType.Solid" ValueProperty="Data">
@@ -24,7 +26,7 @@
                     <RadzenSeriesDataLabels/>
                 </RadzenLineSeries>
                 <RadzenCategoryAxis Stroke="#da4e25" Padding="20">
-                    <RadzenTicks Stroke="#000000">
+                    <RadzenTicks Stroke="#da4e25">
                         <Template>
                             <text class="rz-tick-text" style="text-anchor: start; transform: translate(@(Math.Truncate(context.X))px, @(Math.Truncate(context.Y + 10))px) rotate(35deg)">@context.Value</text>
                         </Template>
@@ -59,7 +61,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        var authState = await state.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        //if (user.Identity == null || !user.Identity.IsAuthenticated)
+        //{
+        //    NavigationManager.NavigateTo("/Login/Login");
+        //}
+
         await UpdateGraph();
         StateHasChanged();
     }

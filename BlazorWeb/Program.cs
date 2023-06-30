@@ -1,9 +1,9 @@
+using BlazorWeb.Services.API;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Radzen;
-using Services.API;
 
 namespace BlazorWeb
 {
@@ -43,7 +43,7 @@ namespace BlazorWeb
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseStaticFiles();
             app.UseCookiePolicy();

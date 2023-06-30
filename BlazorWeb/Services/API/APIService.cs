@@ -1,7 +1,6 @@
-﻿using Services.Models;
-using System.Net.Http.Json;
+﻿using BlazorWeb.Services.Models;
 
-namespace Services.API
+namespace BlazorWeb.Services.API
 {
     public class APIService : IAPIService
     {
@@ -14,7 +13,7 @@ namespace Services.API
         public async Task<List<Telemetry>> GetTelementry(DateTime from, DateTime to)
         {
             HttpClient _httpClient = new();
-            return await _httpClient.GetFromJsonAsync<List<Telemetry>>($"https://jswzjk6b-7117.euw.devtunnels.ms/getTelemetryByDate?from={from.ToString("MM/dd/yyyy HH:mm").Replace('.', ':')}&to={to.ToString("MM/dd/yyyy HH:mm").Replace('.', ':')}") ?? new List<Telemetry>();
+            return await _httpClient.GetFromJsonAsync<List<Telemetry>>($"http://10.135.16.161:32768/getTelemetryByDate?from={from.ToString("MM/dd/yyyy HH:mm").Replace('.', ':')}&to={to.ToString("MM/dd/yyyy HH:mm").Replace('.', ':')}") ?? new List<Telemetry>();
         }
     }
 }

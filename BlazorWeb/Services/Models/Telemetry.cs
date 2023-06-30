@@ -1,4 +1,4 @@
-﻿namespace BlazorWeb.Models
+﻿namespace BlazorWeb.Services.Models
 {
     public class Telemetry
     {
